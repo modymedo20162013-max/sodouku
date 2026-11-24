@@ -4,7 +4,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+
 <meta name="theme-color" content="#f3f5ed">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="سودوكو">
+
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+
 <title>سودوكو | لعبة الذكاء</title>
 
 <style>
@@ -94,22 +102,17 @@ main{max-width:1100px;margin:auto;padding:8px 18px 40px}
 .info-box small{display:block;color:var(--muted);font-size:10px}
 .info-box strong{display:block;margin-top:5px;font-size:16px;font-variant-numeric:tabular-nums}
 
-/* رقعة 9×9 */
 .board-wrap{width:100%;max-width:420px;margin:auto}
 .board{
- direction:ltr;
- width:100%;aspect-ratio:1/1;
+ direction:ltr;width:100%;aspect-ratio:1/1;
  display:grid;
  grid-template-columns:repeat(9,minmax(0,1fr));
  grid-template-rows:repeat(9,minmax(0,1fr));
- gap:0;
- border:2px solid var(--deep);
- border-radius:6px;overflow:hidden;
- background:var(--cell);
+ gap:0;border:2px solid var(--deep);
+ border-radius:6px;overflow:hidden;background:var(--cell);
 }
 .cell{
- direction:rtl;
- min-width:0;min-height:0;width:100%;height:100%;
+ direction:rtl;min-width:0;min-height:0;width:100%;height:100%;
  padding:0;margin:0;border:0;border-radius:0;
  border-right:1px solid var(--line);
  border-bottom:1px solid var(--line);
@@ -121,15 +124,12 @@ main{max-width:1100px;margin:auto;padding:8px 18px 40px}
 }
 .cell.box-right{border-right:2px solid var(--deep)}
 .cell.box-bottom{border-bottom:2px solid var(--deep)}
-
-/* التحديد: الصف والعمود والمربع فقط */
 .cell.related{background:var(--soft)}
 .cell.selected{
  background:var(--primary)!important;
  color:white!important;
  outline:2px solid var(--deep);
- outline-offset:-2px;
- z-index:2;
+ outline-offset:-2px;z-index:2;
 }
 .cell.fixed{color:var(--deep)}
 .cell.error{color:var(--bad)!important;background:#fbe1e1!important}
@@ -184,7 +184,6 @@ main{max-width:1100px;margin:auto;padding:8px 18px 40px}
 .level:disabled{opacity:.35;cursor:not-allowed}
 .section-title{margin:20px 0 12px;font-size:17px}
 
-/* النوافذ */
 .modal-bg{
  display:none;position:fixed;inset:0;z-index:20;
  background:#15231bc9;padding:14px;
@@ -291,7 +290,6 @@ main{max-width:1100px;margin:auto;padding:8px 18px 40px}
 
 <main>
 
-<!-- الرئيسية -->
 <section class="screen active" id="home">
  <div class="home-hero">
   <div class="hero-icon">🧩</div>
@@ -334,10 +332,8 @@ main{max-width:1100px;margin:auto;padding:8px 18px 40px}
  <div class="home-footer">صُممت بحب لتكون لعبة ممتعة وهادئة ❤️</div>
 </section>
 
-<!-- اللعبة -->
 <section class="screen" id="game">
  <div class="game-layout">
-
   <div class="panel game-panel">
    <div class="game-top">
     <button class="btn" style="flex:0 0 auto" onclick="goHome()">⌂ الرئيسية</button>
@@ -395,11 +391,9 @@ main{max-width:1100px;margin:auto;padding:8px 18px 40px}
     </div>
    </div>
   </aside>
-
  </div>
 </section>
 
-<!-- المراحل -->
 <section class="screen" id="levels">
  <div class="panel">
   <button class="btn" style="max-width:110px" onclick="goHome()">← الرئيسية</button>
@@ -410,7 +404,6 @@ main{max-width:1100px;margin:auto;padding:8px 18px 40px}
  </div>
 </section>
 
-<!-- اللعب الحر -->
 <section class="screen" id="free">
  <div class="panel" style="max-width:520px;margin:auto">
   <button class="btn" style="max-width:110px" onclick="goHome()">← الرئيسية</button>
@@ -425,7 +418,6 @@ main{max-width:1100px;margin:auto;padding:8px 18px 40px}
  </div>
 </section>
 
-<!-- الإحصائيات -->
 <section class="screen" id="statistics">
  <div class="panel" style="max-width:550px;margin:auto">
   <button class="btn" style="max-width:110px" onclick="goHome()">← الرئيسية</button>
@@ -442,7 +434,6 @@ main{max-width:1100px;margin:auto;padding:8px 18px 40px}
 
 </main>
 
-<!-- أول تشغيل -->
 <div class="modal-bg" id="firstModal">
  <div class="modal">
   <div style="font-size:43px;text-align:center">🌿</div>
@@ -453,7 +444,6 @@ main{max-width:1100px;margin:auto;padding:8px 18px 40px}
  </div>
 </div>
 
-<!-- الإعدادات -->
 <div class="modal-bg" id="settingsModal">
  <div class="modal">
   <div class="modal-head">
@@ -488,7 +478,6 @@ main{max-width:1100px;margin:auto;padding:8px 18px 40px}
  </div>
 </div>
 
-<!-- النتيجة -->
 <div class="modal-bg" id="resultModal">
  <div class="modal" style="text-align:center">
   <div style="font-size:48px">🏆</div>
@@ -499,7 +488,6 @@ main{max-width:1100px;margin:auto;padding:8px 18px 40px}
  </div>
 </div>
 
-<!-- طريقة اللعب -->
 <div class="modal-bg" id="rulesModal">
  <div class="modal">
   <div class="modal-head">
@@ -911,7 +899,6 @@ function renderBoard(){
   if(c===2||c===5)b.classList.add("box-right");
   if(r===2||r===5)b.classList.add("box-bottom");
 
-  // تحديد الصف والعمود والمربع فقط
   if(selected>=0 && settings.highlight){
    if(r===sr || c===sc || box===sb){
     b.classList.add("related");
@@ -1262,7 +1249,16 @@ document.addEventListener("visibilitychange",()=>{
  if(document.hidden)save();
 });
 
+/* تسجيل التطبيق للعمل كـ PWA */
+if("serviceWorker" in navigator){
+ window.addEventListener("load",()=>{
+  navigator.serviceWorker.register("./service-worker.js")
+   .catch(error=>console.error("Service Worker Error:",error));
+ });
+}
+
 init();
 </script>
 </body>
 </html>
+
