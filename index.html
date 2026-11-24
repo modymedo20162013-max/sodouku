@@ -10,7 +10,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="سودوكو">
 
-<link rel="manifest" href="./manifest.webmanifest">
+<!-- ملفات التطبيق -->
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
 
 <title>سودوكو | لعبة الذكاء</title>
 
@@ -610,7 +612,6 @@ function toast(msg){
  toastTimer=setTimeout(()=>t.style.display="none",2200);
 }
 
-/* الصوت */
 function getAudio(){
  if(!audio){
   try{audio=new (window.AudioContext||window.webkitAudioContext)()}
@@ -657,7 +658,6 @@ function stopMusic(){
  musicNodes=[];
 }
 
-/* الثيمات */
 function applyTheme(){
  let t=themes[settings.theme]||themes.mint;
  let root=document.documentElement;
@@ -728,7 +728,6 @@ function changeSetting(k){
  save();
 }
 
-/* اختيار المستوى */
 function confirmFirstLevel(){
  let n=Math.max(1,Math.min(100,Number($("firstLevel").value)||1));
  data.highest=n;
@@ -751,7 +750,6 @@ function renderLevels(){
  $("levelHint").textContent="أعلى مرحلة وصلتي إليها: "+data.highest;
 }
 
-/* توليد السودوكو */
 function shuffle(arr){
  for(let i=arr.length-1;i>0;i--){
   let j=Math.floor(Math.random()*(i+1));
@@ -875,7 +873,6 @@ function startContinue(){
  }
 }
 
-/* الرقعة والتحديد */
 function renderBoard(){
  let board=$("board");
  board.innerHTML="";
@@ -957,7 +954,6 @@ function isCellValid(index,n){
  return true;
 }
 
-/* لوحة الأرقام */
 function renderKeypad(){
  let keypad=$("keypad");
  keypad.innerHTML="";
@@ -1080,7 +1076,6 @@ function hint(){
  checkWin();
 }
 
-/* التقدم والوقت */
 function formatTime(s){
  let m=Math.floor(s/60);
  let sec=s%60;
@@ -1121,7 +1116,6 @@ function renderGameInfo(){
  updateStats();
 }
 
-/* التحقق من الحل */
 function checkGame(){
  if(game.grid.some(x=>x===0)){
   toast("لا تزال هناك خانات فارغة");
@@ -1184,7 +1178,6 @@ function nextAfterWin(){
  }
 }
 
-/* الإحصائيات */
 function updateStats(){
  ["wins","played","streak"].forEach(k=>{
   if($(k))$(k).textContent=data[k];
@@ -1198,7 +1191,6 @@ function updateStats(){
  if($("sLevel"))$("sLevel").textContent=data.highest;
 }
 
-/* لوحة المفاتيح */
 document.addEventListener("keydown",e=>{
  if(!$("game").classList.contains("active"))return;
 
@@ -1222,7 +1214,6 @@ document.addEventListener("keydown",e=>{
  }
 });
 
-/* بداية التشغيل */
 function init(){
  let exists=load();
 
@@ -1248,10 +1239,10 @@ document.addEventListener("visibilitychange",()=>{
  if(document.hidden)save();
 });
 
-/* تسجيل التطبيق للعمل كـ PWA */
+/* تسجيل Service Worker بالاسم الصحيح */
 if("serviceWorker" in navigator){
  window.addEventListener("load",()=>{
-  navigator.serviceWorker.register("./sw.js")
+  navigator.serviceWorker.register("./service-worker.js")
    .then(registration=>{
     console.log("PWA Registered:",registration.scope);
    })
@@ -1265,5 +1256,3 @@ init();
 </script>
 </body>
 </html>
-
-
