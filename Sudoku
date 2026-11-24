@@ -1,0 +1,1268 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3f5ed">
+<title>سودوكو | لعبة الذكاء</title>
+
+<style>
+:root{
+ --bg:#f3f5ed;
+ --paper:#fffefa;
+ --primary:#77aa8e;
+ --soft:#e1f0e6;
+ --deep:#426e55;
+ --ink:#30463a;
+ --muted:#89998d;
+ --line:#e2e9e1;
+ --cell:#fffefa;
+ --same:#c8e7d3;
+ --bad:#dc7777;
+}
+
+*{box-sizing:border-box}
+body{
+ margin:0;background:var(--bg);color:var(--ink);
+ font-family:Tahoma,Arial,sans-serif;
+ transition:.2s;
+ -webkit-tap-highlight-color:transparent;
+}
+button{font:inherit;cursor:pointer;touch-action:manipulation}
+button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+
+.top{
+ max-width:1100px;margin:auto;padding:13px 18px;
+ display:flex;justify-content:space-between;align-items:center;
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{
+ width:44px;height:44px;border-radius:14px;
+ background:var(--soft);display:grid;place-items:center;font-size:23px;
+}
+.brand h1{font-size:19px;margin:0}
+.brand small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.top-actions{display:flex;gap:8px}
+.icon{
+ width:42px;height:42px;border-radius:13px;
+ border:1px solid var(--line);background:var(--paper);color:var(--ink);
+}
+
+main{max-width:1100px;margin:auto;padding:8px 18px 40px}
+.screen{display:none}
+.screen.active{display:block}
+
+.home-hero{text-align:center;padding:28px 12px 18px}
+.hero-icon{font-size:52px}
+.home-hero h2{font-size:27px;margin:8px 0}
+.home-hero p{color:var(--muted);font-size:13px;line-height:1.9}
+
+.home-grid{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:12px;max-width:730px;margin:18px auto;
+}
+.home-card{
+ background:var(--paper);border:1px solid var(--line);
+ border-radius:18px;padding:17px;text-align:right;color:var(--ink);
+ min-height:115px;
+}
+.home-card:active{transform:scale(.98)}
+.home-card .emoji{font-size:25px}
+.home-card h3{font-size:15px;margin:9px 0 5px}
+.home-card p{font-size:11px;color:var(--muted);margin:0;line-height:1.7}
+.home-card.primary-card{background:var(--deep);color:white}
+.primary-card p{color:#e0eee4}
+.home-footer{text-align:center;color:var(--muted);font-size:11px;margin:25px 0}
+
+.panel{
+ background:var(--paper);border:1px solid var(--line);
+ border-radius:18px;padding:15px;
+}
+.game-layout{
+ display:grid;grid-template-columns:minmax(0,1.4fr) minmax(220px,.65fr);
+ gap:14px;align-items:start;
+}
+.game-top{
+ display:flex;align-items:center;justify-content:space-between;
+ flex-wrap:wrap;gap:8px;margin-bottom:12px;
+}
+.game-top h2{font-size:16px;margin:0}
+.pill{padding:7px 12px;background:var(--soft);color:var(--deep);border-radius:30px;font-size:11px}
+.game-info{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
+.info-box{background:var(--bg);border-radius:10px;padding:9px;text-align:center}
+.info-box small{display:block;color:var(--muted);font-size:10px}
+.info-box strong{display:block;margin-top:5px;font-size:16px;font-variant-numeric:tabular-nums}
+
+/* رقعة 9×9 */
+.board-wrap{width:100%;max-width:420px;margin:auto}
+.board{
+ direction:ltr;
+ width:100%;aspect-ratio:1/1;
+ display:grid;
+ grid-template-columns:repeat(9,minmax(0,1fr));
+ grid-template-rows:repeat(9,minmax(0,1fr));
+ gap:0;
+ border:2px solid var(--deep);
+ border-radius:6px;overflow:hidden;
+ background:var(--cell);
+}
+.cell{
+ direction:rtl;
+ min-width:0;min-height:0;width:100%;height:100%;
+ padding:0;margin:0;border:0;border-radius:0;
+ border-right:1px solid var(--line);
+ border-bottom:1px solid var(--line);
+ background:var(--cell);color:var(--ink);
+ display:flex;align-items:center;justify-content:center;
+ position:relative;
+ font-size:clamp(13px,3.1vw,21px);
+ font-weight:600;
+}
+.cell.box-right{border-right:2px solid var(--deep)}
+.cell.box-bottom{border-bottom:2px solid var(--deep)}
+
+/* التحديد: الصف والعمود والمربع فقط */
+.cell.related{background:var(--soft)}
+.cell.selected{
+ background:var(--primary)!important;
+ color:white!important;
+ outline:2px solid var(--deep);
+ outline-offset:-2px;
+ z-index:2;
+}
+.cell.fixed{color:var(--deep)}
+.cell.error{color:var(--bad)!important;background:#fbe1e1!important}
+
+.notes-grid{
+ width:100%;height:100%;
+ display:grid;grid-template-columns:repeat(3,1fr);
+ grid-template-rows:repeat(3,1fr);
+ align-items:center;justify-items:center;
+ font-size:clamp(7px,1.5vw,10px);
+ font-weight:400;color:var(--deep);
+}
+
+.game-buttons{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.btn{
+ border:1px solid var(--line);background:var(--paper);
+ color:var(--ink);border-radius:11px;
+ padding:10px 11px;font-size:12px;
+ flex:1;min-height:41px;
+}
+.btn.primary{background:var(--deep);color:white;border-color:var(--deep)}
+.btn.active{background:var(--soft);color:var(--deep);border-color:var(--primary)}
+
+.keypad{
+ display:grid;grid-template-columns:repeat(9,minmax(0,1fr));
+ gap:5px;margin-top:12px;
+}
+.key{
+ border:1px solid var(--line);background:var(--bg);
+ color:var(--deep);border-radius:9px;
+ height:43px;font-size:18px;font-weight:bold;
+}
+.key:disabled{opacity:.25;cursor:default}
+
+.side{display:grid;gap:11px}
+.side h3{font-size:14px;margin:0 0 10px}
+.side p{font-size:11px;line-height:1.8;color:var(--muted)}
+.progress{height:8px;background:var(--bg);border-radius:20px;overflow:hidden;margin-top:12px}
+.progress div{height:100%;width:0;background:var(--primary);transition:.3s}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.stat{padding:11px;border-radius:11px;background:var(--bg)}
+.stat strong{display:block;font-size:20px}
+.stat small{color:var(--muted);font-size:10px}
+
+.level-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.level{
+ padding:12px 5px;background:var(--bg);
+ border:1px solid var(--line);color:var(--ink);
+ border-radius:11px;font-size:12px;
+}
+.level.active{background:var(--soft);border-color:var(--primary)}
+.level:disabled{opacity:.35;cursor:not-allowed}
+.section-title{margin:20px 0 12px;font-size:17px}
+
+/* النوافذ */
+.modal-bg{
+ display:none;position:fixed;inset:0;z-index:20;
+ background:#15231bc9;padding:14px;
+ align-items:center;justify-content:center;
+}
+.modal-bg.show{display:flex}
+.modal{
+ width:min(100%,440px);max-height:90dvh;overflow:auto;
+ padding:21px;background:var(--paper);color:var(--ink);
+ border-radius:20px;
+}
+.modal-head{display:flex;justify-content:space-between;align-items:center}
+.modal-head h2{font-size:18px;margin:0}
+.close{
+ border:0;background:var(--bg);color:var(--ink);
+ border-radius:10px;width:35px;height:35px;
+}
+.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.theme{
+ border:2px solid var(--line);border-radius:12px;
+ padding:9px;background:var(--paper);color:var(--ink);
+ text-align:center;font-size:10px;
+}
+.theme.active{border-color:var(--primary)}
+.swatches{display:flex;gap:4px;margin-bottom:8px}
+.swatches span{height:23px;flex:1;border-radius:6px}
+.setting{
+ display:flex;align-items:center;justify-content:space-between;
+ padding:12px 0;border-bottom:1px solid var(--line);font-size:12px;
+}
+.toggle{
+ width:43px;height:24px;border:0;border-radius:20px;
+ background:var(--line);position:relative;
+}
+.toggle:after{
+ content:"";position:absolute;right:3px;top:3px;
+ width:18px;height:18px;background:white;border-radius:50%;transition:.2s;
+}
+.toggle.on{background:var(--primary)}
+.toggle.on:after{right:22px}
+.field{
+ width:100%;border:1px solid var(--line);
+ background:var(--bg);color:var(--ink);
+ padding:12px;border-radius:10px;margin:9px 0;
+}
+.toast{
+ position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+ background:var(--deep);color:white;padding:12px 18px;
+ border-radius:12px;font-size:12px;z-index:30;
+ display:none;white-space:nowrap;
+}
+
+@media(max-width:750px){
+ main{padding:5px 10px 25px}
+ .top{padding:10px 12px}
+ .home-hero{padding:19px 8px}
+ .home-hero h2{font-size:23px}
+ .game-layout{grid-template-columns:1fr}
+ .game-panel{padding:10px}
+ .board-wrap{max-width:min(100%,410px)}
+ .side{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .side .panel:last-child{grid-column:1/-1}
+ .keypad{gap:3px}
+}
+@media(min-width:751px) and (max-width:1050px){
+ .game-layout{grid-template-columns:minmax(0,1fr) 210px;gap:10px}
+ .game-panel{padding:10px}
+ .board-wrap{max-width:420px}
+}
+@media(max-width:390px){
+ main{padding:5px 8px 25px}
+ .home-grid{gap:8px}
+ .home-card{padding:13px;min-height:108px}
+ .home-card h3{font-size:13px}
+ .home-card p{font-size:10px}
+ .cell{font-size:clamp(12px,4vw,18px)}
+ .key{height:39px;font-size:16px}
+ .game-buttons{gap:5px}
+ .btn{padding:9px 7px;font-size:11px}
+ .side{grid-template-columns:1fr}
+ .side .panel:last-child{grid-column:auto}
+}
+@media(min-width:900px) and (orientation:landscape){
+ .board-wrap{max-width:390px}
+}
+</style>
+</head>
+
+<body>
+
+<header class="top">
+ <div class="brand">
+  <div class="brand-icon">🌿</div>
+  <div>
+   <h1>سودوكو</h1>
+   <small>SUDOKU • THINK & RELAX</small>
+  </div>
+ </div>
+ <div class="top-actions">
+  <button class="icon" onclick="openSettings()">⚙</button>
+  <button class="icon" id="themeBtn" onclick="toggleTheme()">☾</button>
+ </div>
+</header>
+
+<main>
+
+<!-- الرئيسية -->
+<section class="screen active" id="home">
+ <div class="home-hero">
+  <div class="hero-icon">🧩</div>
+  <h2>أهلاً بك في عالم السودوكو</h2>
+  <p>وقت هادئ وتحديات ممتعة وعقل أكثر تركيزاً.<br>اختاري لغزك وابدئي الرحلة!</p>
+ </div>
+
+ <div class="home-grid">
+  <button class="home-card primary-card" onclick="startContinue()">
+   <div class="emoji">▶️</div>
+   <h3>استكمال اللعب</h3>
+   <p>ارجعي إلى آخر لعبة وصلتي إليها</p>
+  </button>
+  <button class="home-card" onclick="openLevelSelect()">
+   <div class="emoji">🏆</div>
+   <h3>المراحل</h3>
+   <p>اختاري المستوى الذي يناسبك</p>
+  </button>
+  <button class="home-card" onclick="openFree()">
+   <div class="emoji">🎯</div>
+   <h3>اللعب الحر</h3>
+   <p>اختاري درجة الصعوبة بنفسك</p>
+  </button>
+  <button class="home-card" onclick="openStats()">
+   <div class="emoji">📊</div>
+   <h3>إحصائياتي</h3>
+   <p>شاهدي تقدمك وإنجازاتك</p>
+  </button>
+  <button class="home-card" onclick="openSettings()">
+   <div class="emoji">⚙️</div>
+   <h3>الإعدادات</h3>
+   <p>الألوان والصوت وتجربة اللعب</p>
+  </button>
+  <button class="home-card" onclick="showRules()">
+   <div class="emoji">📖</div>
+   <h3>طريقة اللعب</h3>
+   <p>تعرفي على قواعد السودوكو</p>
+  </button>
+ </div>
+ <div class="home-footer">صُممت بحب لتكون لعبة ممتعة وهادئة ❤️</div>
+</section>
+
+<!-- اللعبة -->
+<section class="screen" id="game">
+ <div class="game-layout">
+
+  <div class="panel game-panel">
+   <div class="game-top">
+    <button class="btn" style="flex:0 0 auto" onclick="goHome()">⌂ الرئيسية</button>
+    <h2 id="gameTitle">المستوى 1</h2>
+    <span class="pill" id="gameDifficulty">سهل</span>
+   </div>
+
+   <div class="game-info">
+    <div class="info-box"><small>الوقت</small><strong id="time">00:00</strong></div>
+    <div class="info-box"><small>الأخطاء</small><strong id="errors">0</strong></div>
+    <div class="info-box"><small>الخانات المتبقية</small><strong id="left">81</strong></div>
+   </div>
+
+   <div class="board-wrap">
+    <div class="board" id="board"></div>
+   </div>
+
+   <div class="game-buttons">
+    <button class="btn" id="draftBtn" onclick="toggleDraft()">✎ Draft</button>
+    <button class="btn" onclick="eraseCell()">⌫ مسح</button>
+    <button class="btn" onclick="undo()">↶ تراجع</button>
+    <button class="btn" onclick="hint()">✦ تلميح</button>
+   </div>
+
+   <div class="keypad" id="keypad"></div>
+
+   <div class="game-buttons">
+    <button class="btn primary" onclick="checkGame()">التحقق من الحل</button>
+    <button class="btn" onclick="newGame()">لعبة جديدة ↻</button>
+   </div>
+  </div>
+
+  <aside class="side">
+   <div class="panel">
+    <h3>🌱 تقدم المرحلة</h3>
+    <strong id="levelProgress">المستوى 1</strong>
+    <div class="progress"><div id="progressBar"></div></div>
+    <p id="progressText">ابدئي أول تحدٍ لك!</p>
+   </div>
+
+   <div class="panel">
+    <h3>🎮 أدوات اللعب</h3>
+    <p>اختاري خانة من اللوحة، ثم اختاري الرقم من لوحة الأرقام.</p>
+    <p>استخدمي Draft لتسجيل الاحتمالات قبل تثبيت الرقم.</p>
+    <button class="btn" onclick="openSettings()">⚙️ إعدادات اللعب</button>
+   </div>
+
+   <div class="panel">
+    <h3>🏅 إنجازاتك</h3>
+    <div class="stat-grid">
+     <div class="stat"><strong id="wins">0</strong><small>انتصارات</small></div>
+     <div class="stat"><strong id="played">0</strong><small>ألعاب مكتملة</small></div>
+     <div class="stat"><strong id="best">--</strong><small>أفضل وقت</small></div>
+     <div class="stat"><strong id="streak">0</strong><small>أيام متتالية</small></div>
+    </div>
+   </div>
+  </aside>
+
+ </div>
+</section>
+
+<!-- المراحل -->
+<section class="screen" id="levels">
+ <div class="panel">
+  <button class="btn" style="max-width:110px" onclick="goHome()">← الرئيسية</button>
+  <h2 class="section-title">🏆 اختاري المرحلة</h2>
+  <p>ابدئي من المستوى الذي يناسبك. كلما تقدمتِ أصبحت الألغاز أصعب.</p>
+  <div class="level-grid" id="levelGrid"></div>
+  <p id="levelHint"></p>
+ </div>
+</section>
+
+<!-- اللعب الحر -->
+<section class="screen" id="free">
+ <div class="panel" style="max-width:520px;margin:auto">
+  <button class="btn" style="max-width:110px" onclick="goHome()">← الرئيسية</button>
+  <h2 class="section-title">🎯 اللعب الحر</h2>
+  <p>اختاري مستوى الصعوبة الذي تريدينه.</p>
+  <div class="level-grid" style="grid-template-columns:repeat(2,1fr)">
+   <button class="level" onclick="startFree('easy')">🌱 سهل</button>
+   <button class="level" onclick="startFree('medium')">🍃 متوسط</button>
+   <button class="level" onclick="startFree('hard')">🌳 صعب</button>
+   <button class="level" onclick="startFree('expert')">🔥 خبير</button>
+  </div>
+ </div>
+</section>
+
+<!-- الإحصائيات -->
+<section class="screen" id="statistics">
+ <div class="panel" style="max-width:550px;margin:auto">
+  <button class="btn" style="max-width:110px" onclick="goHome()">← الرئيسية</button>
+  <h2 class="section-title">📊 إحصائياتك</h2>
+  <div class="stat-grid">
+   <div class="stat"><strong id="sPlayed">0</strong><small>ألعاب مكتملة</small></div>
+   <div class="stat"><strong id="sWins">0</strong><small>انتصارات</small></div>
+   <div class="stat"><strong id="sBest">--</strong><small>أفضل وقت</small></div>
+   <div class="stat"><strong id="sStreak">0</strong><small>أيام متتالية</small></div>
+   <div class="stat"><strong id="sLevel">1</strong><small>أعلى مستوى</small></div>
+  </div>
+ </div>
+</section>
+
+</main>
+
+<!-- أول تشغيل -->
+<div class="modal-bg" id="firstModal">
+ <div class="modal">
+  <div style="font-size:43px;text-align:center">🌿</div>
+  <h2 style="text-align:center">أهلاً بك في سودوكو!</h2>
+  <p style="text-align:center">اختاري المستوى الذي تحبين أن تبدئي منه.</p>
+  <input class="field" type="number" id="firstLevel" min="1" max="100" value="1">
+  <button class="btn primary" style="width:100%" onclick="confirmFirstLevel()">ابدئي الرحلة</button>
+ </div>
+</div>
+
+<!-- الإعدادات -->
+<div class="modal-bg" id="settingsModal">
+ <div class="modal">
+  <div class="modal-head">
+   <h2>⚙️ الإعدادات</h2>
+   <button class="close" onclick="closeModal('settingsModal')">✕</button>
+  </div>
+
+  <h3 class="section-title">🎨 ألوان اللعبة</h3>
+  <div class="theme-grid" id="themeGrid"></div>
+
+  <h3 class="section-title">🔊 الصوت</h3>
+  <div class="setting">
+   <span>الموسيقى الهادئة</span>
+   <button class="toggle" id="musicToggle" onclick="changeSetting('music')"></button>
+  </div>
+  <div class="setting">
+   <span>المؤثرات الصوتية</span>
+   <button class="toggle on" id="soundToggle" onclick="changeSetting('sound')"></button>
+  </div>
+
+  <h3 class="section-title">🎮 إعدادات اللعب</h3>
+  <div class="setting">
+   <span>إظهار الأخطاء تلقائياً</span>
+   <button class="toggle on" id="mistakeToggle" onclick="changeSetting('mistakes')"></button>
+  </div>
+  <div class="setting">
+   <span>إظهار الخانات المرتبطة</span>
+   <button class="toggle on" id="highlightToggle" onclick="changeSetting('highlight')"></button>
+  </div>
+
+  <button class="btn primary" style="width:100%;margin-top:18px" onclick="closeModal('settingsModal')">حفظ وإغلاق</button>
+ </div>
+</div>
+
+<!-- النتيجة -->
+<div class="modal-bg" id="resultModal">
+ <div class="modal" style="text-align:center">
+  <div style="font-size:48px">🏆</div>
+  <h2 id="resultTitle">أحسنتِ!</h2>
+  <p id="resultText"></p>
+  <button class="btn primary" style="width:100%" onclick="nextAfterWin()">متابعة</button>
+  <button class="btn" style="width:100%;margin-top:8px" onclick="closeModal('resultModal');goHome()">الرئيسية</button>
+ </div>
+</div>
+
+<!-- طريقة اللعب -->
+<div class="modal-bg" id="rulesModal">
+ <div class="modal">
+  <div class="modal-head">
+   <h2>📖 طريقة اللعب</h2>
+   <button class="close" onclick="closeModal('rulesModal')">✕</button>
+  </div>
+  <p>1. املئي الخانات الفارغة بالأرقام من 1 إلى 9.</p>
+  <p>2. لا تكرري أي رقم في الصف الواحد.</p>
+  <p>3. لا تكرري أي رقم في العمود الواحد.</p>
+  <p>4. لا تكرري أي رقم داخل المربع الكبير 3×3.</p>
+  <p>5. استخدمي Draft لتسجيل الاحتمالات.</p>
+  <p>6. الهدف هو ملء اللوحة كلها بطريقة صحيحة.</p>
+  <button class="btn primary" style="width:100%" onclick="closeModal('rulesModal')">فهمت!</button>
+ </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const KEY="sudoku_family_final_v5";
+
+const themes={
+ mint:{
+  name:"مينت جرين",bg:"#f3f5ed",paper:"#fffefa",
+  primary:"#77aa8e",soft:"#e1f0e6",deep:"#426e55",
+  ink:"#30463a",line:"#e2e9e1",same:"#c8e7d3"
+ },
+ blue:{
+  name:"أزرق",bg:"#eef4fa",paper:"#ffffff",
+  primary:"#72a9d5",soft:"#dfedfa",deep:"#356c9c",
+  ink:"#29445b",line:"#dce6ef",same:"#c4def3"
+ },
+ orange:{
+  name:"أورنج",bg:"#faf2e9",paper:"#fffefa",
+  primary:"#e5a36d",soft:"#fbe8d5",deep:"#a96837",
+  ink:"#553d2b",line:"#eee2d6",same:"#f5d5b5"
+ },
+ navy:{
+  name:"دارك بلو",bg:"#eaf0f8",paper:"#ffffff",
+  primary:"#536e9f",soft:"#dce5f3",deep:"#263f69",
+  ink:"#253650",line:"#d9e0eb",same:"#c4d3ee"
+ },
+ purple:{
+  name:"بربل",bg:"#f4eff9",paper:"#fffefe",
+  primary:"#a88bca",soft:"#eae0f5",deep:"#72548f",
+  ink:"#493b59",line:"#e6ddec",same:"#ddccef"
+ },
+ dark:{
+  name:"دارك مود",bg:"#202a28",paper:"#2d3935",
+  primary:"#85b49b",soft:"#394d42",deep:"#a9d5b7",
+  ink:"#eef4ef",line:"#48564f",same:"#465f50"
+ }
+};
+
+let settings={
+ theme:"mint",music:false,sound:true,
+ mistakes:true,highlight:true
+};
+
+let data={
+ highest:1,played:0,wins:0,best:0,streak:0,lastDay:""
+};
+
+let game={
+ level:1,mode:"levels",difficulty:"easy",
+ puzzle:[],solution:[],grid:[],notes:[],
+ selected:-1,seconds:0,errors:0,
+ draft:false,finished:false,history:[]
+};
+
+let timer=null;
+let audio=null;
+let musicNodes=[];
+let toastTimer=null;
+
+function save(){
+ try{
+  localStorage.setItem(KEY,JSON.stringify({settings,data,game}));
+ }catch(e){}
+}
+
+function load(){
+ try{
+  let d=JSON.parse(localStorage.getItem(KEY));
+  if(!d)return false;
+
+  settings={...settings,...d.settings};
+  data={...data,...d.data};
+
+  if(d.game && d.game.grid?.length===81){
+   game={...game,...d.game};
+  }
+  return true;
+ }catch(e){return false}
+}
+
+function showScreen(id){
+ document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));
+ $(id).classList.add("active");
+ window.scrollTo(0,0);
+}
+
+function goHome(){
+ stopTimer();
+ showScreen("home");
+ save();
+}
+
+function closeModal(id){$(id).classList.remove("show")}
+function openLevelSelect(){renderLevels();showScreen("levels")}
+function openFree(){showScreen("free")}
+function openStats(){updateStats();showScreen("statistics")}
+function showRules(){$("rulesModal").classList.add("show")}
+
+function toast(msg){
+ let t=$("toast");
+ t.textContent=msg;
+ t.style.display="block";
+ clearTimeout(toastTimer);
+ toastTimer=setTimeout(()=>t.style.display="none",2200);
+}
+
+/* الصوت */
+function getAudio(){
+ if(!audio){
+  try{audio=new (window.AudioContext||window.webkitAudioContext)()}
+  catch(e){return null}
+ }
+ if(audio.state==="suspended")audio.resume();
+ return audio;
+}
+
+function beep(freq=500,duration=.08){
+ if(!settings.sound)return;
+ let a=getAudio();
+ if(!a)return;
+ let o=a.createOscillator(),g=a.createGain();
+ o.frequency.value=freq;
+ o.type="sine";
+ g.gain.setValueAtTime(.06,a.currentTime);
+ g.gain.exponentialRampToValueAtTime(.001,a.currentTime+duration);
+ o.connect(g);g.connect(a.destination);
+ o.start();o.stop(a.currentTime+duration);
+}
+
+function startMusic(){
+ if(musicNodes.length)return;
+ let a=getAudio();
+ if(!a)return;
+
+ [174.61,220,261.63].forEach((freq,i)=>{
+  let o=a.createOscillator();
+  let g=a.createGain();
+  o.type="sine";
+  o.frequency.value=freq;
+  g.gain.value=.009;
+  o.connect(g);g.connect(a.destination);
+  o.start();
+  musicNodes.push({o,g});
+ });
+}
+
+function stopMusic(){
+ musicNodes.forEach(n=>{
+  try{n.o.stop()}catch(e){}
+ });
+ musicNodes=[];
+}
+
+/* الثيمات */
+function applyTheme(){
+ let t=themes[settings.theme]||themes.mint;
+ let root=document.documentElement;
+
+ Object.entries({
+  "--bg":t.bg,"--paper":t.paper,
+  "--primary":t.primary,"--soft":t.soft,
+  "--deep":t.deep,"--ink":t.ink,
+  "--line":t.line,"--cell":t.paper,
+  "--same":t.same
+ }).forEach(([k,v])=>root.style.setProperty(k,v));
+
+ $("themeBtn").textContent=settings.theme==="dark"?"☀":"☾";
+
+ if(game.grid.length===81)renderBoard();
+ save();
+}
+
+function toggleTheme(){
+ settings.theme=settings.theme==="dark"?"mint":"dark";
+ applyTheme();
+ renderThemes();
+}
+
+function renderThemes(){
+ $("themeGrid").innerHTML="";
+ Object.entries(themes).forEach(([id,t])=>{
+  let b=document.createElement("button");
+  b.className="theme"+(settings.theme===id?" active":"");
+  b.innerHTML='<div class="swatches">'+
+   '<span style="background:'+t.bg+'"></span>'+
+   '<span style="background:'+t.primary+'"></span>'+
+   '<span style="background:'+t.deep+'"></span>'+
+   '</div>'+t.name;
+  b.onclick=()=>{
+   settings.theme=id;
+   applyTheme();
+   renderThemes();
+  };
+  $("themeGrid").appendChild(b);
+ });
+}
+
+function openSettings(){
+ renderThemes();
+ updateSettingsUI();
+ $("settingsModal").classList.add("show");
+}
+
+function updateSettingsUI(){
+ let map={
+  music:"musicToggle",sound:"soundToggle",
+  mistakes:"mistakeToggle",highlight:"highlightToggle"
+ };
+ Object.entries(map).forEach(([k,id])=>{
+  $(id).classList.toggle("on",!!settings[k]);
+ });
+}
+
+function changeSetting(k){
+ settings[k]=!settings[k];
+ updateSettingsUI();
+
+ if(k==="music"){
+  if(settings.music)startMusic();
+  else stopMusic();
+ }
+ save();
+}
+
+/* اختيار المستوى */
+function confirmFirstLevel(){
+ let n=Math.max(1,Math.min(100,Number($("firstLevel").value)||1));
+ data.highest=n;
+ game.level=n;
+ closeModal("firstModal");
+ save();
+ startLevel(n);
+}
+
+function renderLevels(){
+ $("levelGrid").innerHTML="";
+ for(let i=1;i<=100;i++){
+  let b=document.createElement("button");
+  b.className="level"+(i===game.level?" active":"");
+  b.textContent="Level "+i;
+  b.disabled=i>data.highest;
+  b.onclick=()=>startLevel(i);
+  $("levelGrid").appendChild(b);
+ }
+ $("levelHint").textContent="أعلى مرحلة وصلتي إليها: "+data.highest;
+}
+
+/* توليد السودوكو */
+function shuffle(arr){
+ for(let i=arr.length-1;i>0;i--){
+  let j=Math.floor(Math.random()*(i+1));
+  [arr[i],arr[j]]=[arr[j],arr[i]];
+ }
+ return arr;
+}
+
+function valid(grid,r,c,n){
+ for(let i=0;i<9;i++){
+  if(grid[r*9+i]===n)return false;
+  if(grid[i*9+c]===n)return false;
+ }
+ let br=Math.floor(r/3)*3;
+ let bc=Math.floor(c/3)*3;
+ for(let y=br;y<br+3;y++)
+  for(let x=bc;x<bc+3;x++)
+   if(grid[y*9+x]===n)return false;
+ return true;
+}
+
+function fillGrid(grid){
+ for(let i=0;i<81;i++){
+  if(grid[i]!==0)continue;
+  let r=Math.floor(i/9),c=i%9;
+  let nums=shuffle([1,2,3,4,5,6,7,8,9]);
+  for(let n of nums){
+   if(valid(grid,r,c,n)){
+    grid[i]=n;
+    if(fillGrid(grid))return true;
+    grid[i]=0;
+   }
+  }
+  return false;
+ }
+ return true;
+}
+
+function makePuzzle(difficulty){
+ let solution=Array(81).fill(0);
+ fillGrid(solution);
+
+ let puzzle=solution.slice();
+ let removals={
+  easy:38,
+  medium:46,
+  hard:53,
+  expert:58
+ }[difficulty]||38;
+
+ let positions=shuffle([...Array(81).keys()]);
+ for(let i=0;i<removals;i++)puzzle[positions[i]]=0;
+
+ return {puzzle,solution};
+}
+
+function difficultyName(d){
+ return {
+  easy:"سهل",medium:"متوسط",
+  hard:"صعب",expert:"خبير"
+ }[d]||"سهل";
+}
+
+function difficultyForLevel(n){
+ if(n<=10)return "easy";
+ if(n<=25)return "medium";
+ if(n<=50)return "hard";
+ return "expert";
+}
+
+function startLevel(n){
+ game.level=n;
+ game.mode="levels";
+ startNewPuzzle(difficultyForLevel(n));
+}
+
+function startFree(d){
+ game.mode="free";
+ game.difficulty=d;
+ startNewPuzzle(d);
+}
+
+function startNewPuzzle(d){
+ stopTimer();
+ let generated=makePuzzle(d);
+
+ game.difficulty=d;
+ game.puzzle=generated.puzzle.slice();
+ game.solution=generated.solution.slice();
+ game.grid=generated.puzzle.slice();
+ game.notes=Array.from({length:81},()=>[]);
+ game.selected=-1;
+ game.seconds=0;
+ game.errors=0;
+ game.draft=false;
+ game.finished=false;
+ game.history=[];
+
+ showScreen("game");
+ renderBoard();
+ renderGameInfo();
+ updateStats();
+ save();
+ startTimer();
+}
+
+function newGame(){
+ if(confirm("هل تريدين بدء لغز جديد؟")){
+  startNewPuzzle(game.difficulty);
+ }
+}
+
+function startContinue(){
+ if(game.grid.length===81 && !game.finished){
+  showScreen("game");
+  renderBoard();
+  renderGameInfo();
+  startTimer();
+ }else{
+  startLevel(data.highest);
+ }
+}
+
+/* الرقعة والتحديد */
+function renderBoard(){
+ let board=$("board");
+ board.innerHTML="";
+ if(game.grid.length!==81)return;
+
+ let selected=game.selected;
+ let sr=selected>=0?Math.floor(selected/9):-1;
+ let sc=selected>=0?selected%9:-1;
+ let sb=selected>=0?
+  Math.floor(sr/3)*3+Math.floor(sc/3):-1;
+
+ for(let i=0;i<81;i++){
+  let r=Math.floor(i/9);
+  let c=i%9;
+  let box=Math.floor(r/3)*3+Math.floor(c/3);
+
+  let b=document.createElement("button");
+  b.className="cell";
+
+  if(c===2||c===5)b.classList.add("box-right");
+  if(r===2||r===5)b.classList.add("box-bottom");
+
+  // تحديد الصف والعمود والمربع فقط
+  if(selected>=0 && settings.highlight){
+   if(r===sr || c===sc || box===sb){
+    b.classList.add("related");
+   }
+  }
+
+  if(i===selected)b.classList.add("selected");
+  if(game.puzzle[i]!==0)b.classList.add("fixed");
+
+  let n=game.grid[i];
+
+  if(n!==0){
+   b.textContent=n;
+
+   if(settings.mistakes && game.puzzle[i]===0){
+    if(!isCellValid(i,n))b.classList.add("error");
+   }
+  }else if(game.notes[i]?.length){
+   let notes=document.createElement("div");
+   notes.className="notes-grid";
+   for(let x=1;x<=9;x++){
+    let span=document.createElement("span");
+    span.textContent=game.notes[i].includes(x)?x:"";
+    notes.appendChild(span);
+   }
+   b.appendChild(notes);
+  }
+
+  b.addEventListener("click",()=>selectCell(i));
+  board.appendChild(b);
+ }
+
+ renderKeypad();
+}
+
+function selectCell(i){
+ game.selected=i;
+ beep(420,.05);
+ renderBoard();
+ save();
+}
+
+function isCellValid(index,n){
+ let r=Math.floor(index/9),c=index%9;
+ for(let i=0;i<9;i++){
+  if(i!==c && game.grid[r*9+i]===n)return false;
+  if(i!==r && game.grid[i*9+c]===n)return false;
+ }
+ let br=Math.floor(r/3)*3;
+ let bc=Math.floor(c/3)*3;
+ for(let y=br;y<br+3;y++){
+  for(let x=bc;x<bc+3;x++){
+   let j=y*9+x;
+   if(j!==index && game.grid[j]===n)return false;
+  }
+ }
+ return true;
+}
+
+/* لوحة الأرقام */
+function renderKeypad(){
+ let keypad=$("keypad");
+ keypad.innerHTML="";
+ for(let n=1;n<=9;n++){
+  let count=game.grid.filter(x=>x===n).length;
+  let b=document.createElement("button");
+  b.className="key";
+  b.textContent=n;
+  b.disabled=count>=9;
+  b.onclick=()=>enterNumber(n);
+  keypad.appendChild(b);
+ }
+}
+
+function pushHistory(){
+ game.history.push({
+  grid:game.grid.slice(),
+  notes:game.notes.map(x=>x.slice()),
+  errors:game.errors
+ });
+ if(game.history.length>100)game.history.shift();
+}
+
+function enterNumber(n){
+ if(game.selected<0){
+  toast("اختاري خانة أولاً");
+  return;
+ }
+ let i=game.selected;
+
+ if(game.puzzle[i]!==0){
+  toast("لا يمكن تغيير الرقم الأصلي");
+  return;
+ }
+ if(game.finished)return;
+
+ pushHistory();
+
+ if(game.draft){
+  let arr=game.notes[i];
+  if(arr.includes(n)){
+   game.notes[i]=arr.filter(x=>x!==n);
+  }else{
+   game.notes[i].push(n);
+   game.notes[i].sort();
+  }
+ }else{
+  game.grid[i]=n;
+  game.notes[i]=[];
+
+  if(settings.mistakes && !isCellValid(i,n)){
+   game.errors++;
+   beep(180,.15);
+  }else{
+   beep(620,.07);
+  }
+ }
+
+ renderBoard();
+ renderGameInfo();
+ save();
+ checkWin();
+}
+
+function eraseCell(){
+ let i=game.selected;
+ if(i<0)return;
+ if(game.puzzle[i]!==0){
+  toast("لا يمكن مسح الخانة الأصلية");
+  return;
+ }
+ pushHistory();
+ game.grid[i]=0;
+ game.notes[i]=[];
+ renderBoard();
+ renderGameInfo();
+ save();
+}
+
+function undo(){
+ if(!game.history.length){
+  toast("لا يوجد تراجع");
+  return;
+ }
+ let h=game.history.pop();
+ game.grid=h.grid;
+ game.notes=h.notes;
+ game.errors=h.errors;
+ renderBoard();
+ renderGameInfo();
+ save();
+}
+
+function toggleDraft(){
+ game.draft=!game.draft;
+ $("draftBtn").classList.toggle("active",game.draft);
+ toast(game.draft?"تم تفعيل Draft":"تم إيقاف Draft");
+ save();
+}
+
+function hint(){
+ if(game.selected<0){
+  toast("اختاري خانة أولاً");
+  return;
+ }
+ let i=game.selected;
+ if(game.puzzle[i]!==0){
+  toast("هذه الخانة ثابتة");
+  return;
+ }
+ if(game.finished)return;
+
+ pushHistory();
+ game.grid[i]=game.solution[i];
+ game.notes[i]=[];
+ renderBoard();
+ renderGameInfo();
+ save();
+ beep(700,.12);
+ checkWin();
+}
+
+/* التقدم والوقت */
+function formatTime(s){
+ let m=Math.floor(s/60);
+ let sec=s%60;
+ return String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+}
+
+function startTimer(){
+ stopTimer();
+ if(game.finished)return;
+ timer=setInterval(()=>{
+  game.seconds++;
+  $("time").textContent=formatTime(game.seconds);
+  if(game.seconds%5===0)save();
+ },1000);
+}
+
+function stopTimer(){
+ if(timer){clearInterval(timer);timer=null}
+}
+
+function renderGameInfo(){
+ $("time").textContent=formatTime(game.seconds);
+ $("errors").textContent=game.errors;
+ let left=game.grid.filter(x=>x===0).length;
+ $("left").textContent=left;
+
+ $("gameTitle").textContent=
+  game.mode==="levels"?"المستوى "+game.level:"اللعب الحر";
+
+ $("gameDifficulty").textContent=difficultyName(game.difficulty);
+
+ let done=81-left;
+ $("levelProgress").textContent="المستوى "+game.level;
+ $("progressBar").style.width=(done/81*100)+"%";
+ $("progressText").textContent="تم ملء "+done+" من 81 خانة";
+
+ $("draftBtn").classList.toggle("active",game.draft);
+ updateStats();
+}
+
+/* التحقق من الحل */
+function checkGame(){
+ if(game.grid.some(x=>x===0)){
+  toast("لا تزال هناك خانات فارغة");
+  return;
+ }
+
+ let correct=game.grid.every((n,i)=>n===game.solution[i]);
+
+ if(correct){
+  winGame();
+ }else{
+  toast("هناك أرقام غير صحيحة، راجعي الحل");
+  beep(180,.2);
+ }
+}
+
+function checkWin(){
+ if(game.grid.every(x=>x!==0)){
+  if(game.grid.every((n,i)=>n===game.solution[i]))winGame();
+ }
+}
+
+function winGame(){
+ if(game.finished)return;
+ game.finished=true;
+ stopTimer();
+
+ data.played++;
+ data.wins++;
+
+ if(!data.best || game.seconds<data.best)data.best=game.seconds;
+
+ let today=new Date().toDateString();
+ if(data.lastDay!==today){
+  data.streak++;
+  data.lastDay=today;
+ }
+
+ if(game.mode==="levels" && game.level>=data.highest){
+  data.highest=Math.min(100,game.level+1);
+ }
+
+ save();
+ updateStats();
+
+ $("resultTitle").textContent="أحسنتِ! 🎉";
+ $("resultText").textContent=
+  "أنهيتِ اللغز في "+formatTime(game.seconds)+
+  " مع "+game.errors+" أخطاء.";
+ $("resultModal").classList.add("show");
+ beep(780,.2);
+}
+
+function nextAfterWin(){
+ closeModal("resultModal");
+ if(game.mode==="levels"){
+  startLevel(Math.min(100,game.level+1));
+ }else{
+  goHome();
+ }
+}
+
+/* الإحصائيات */
+function updateStats(){
+ ["wins","played","streak"].forEach(k=>{
+  if($(k))$(k).textContent=data[k];
+ });
+ if($("best"))$("best").textContent=data.best?formatTime(data.best):"--";
+
+ if($("sPlayed"))$("sPlayed").textContent=data.played;
+ if($("sWins"))$("sWins").textContent=data.wins;
+ if($("sBest"))$("sBest").textContent=data.best?formatTime(data.best):"--";
+ if($("sStreak"))$("sStreak").textContent=data.streak;
+ if($("sLevel"))$("sLevel").textContent=data.highest;
+}
+
+/* لوحة المفاتيح */
+document.addEventListener("keydown",e=>{
+ if(!$("game").classList.contains("active"))return;
+
+ if(e.key>="1"&&e.key<="9"){
+  enterNumber(Number(e.key));
+ }
+ if(e.key==="Backspace"||e.key==="Delete"){
+  eraseCell();
+ }
+ if(e.key==="ArrowRight"&&game.selected>=0){
+  selectCell(Math.max(0,game.selected-1));
+ }
+ if(e.key==="ArrowLeft"&&game.selected>=0){
+  selectCell(Math.min(80,game.selected+1));
+ }
+ if(e.key==="ArrowUp"&&game.selected>=0){
+  selectCell(Math.max(0,game.selected-9));
+ }
+ if(e.key==="ArrowDown"&&game.selected>=0){
+  selectCell(Math.min(80,game.selected+9));
+ }
+});
+
+/* بداية التشغيل */
+function init(){
+ let exists=load();
+
+ applyTheme();
+ renderThemes();
+ updateSettingsUI();
+ updateStats();
+
+ if(settings.music)startMusic();
+
+ if(!exists){
+  $("firstModal").classList.add("show");
+ }else{
+  if(game.grid.length===81){
+   renderGameInfo();
+   if(!game.finished)startTimer();
+  }
+ }
+}
+
+window.addEventListener("beforeunload",save);
+document.addEventListener("visibilitychange",()=>{
+ if(document.hidden)save();
+});
+
+init();
+</script>
+</body>
+</html>
