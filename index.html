@@ -10,8 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="سودوكو">
 
-<link rel="manifest" href="./manifest.json">
-<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="manifest" href="./manifest.webmanifest">
 
 <title>سودوكو | لعبة الذكاء</title>
 
@@ -1252,8 +1251,13 @@ document.addEventListener("visibilitychange",()=>{
 /* تسجيل التطبيق للعمل كـ PWA */
 if("serviceWorker" in navigator){
  window.addEventListener("load",()=>{
-  navigator.serviceWorker.register("./service-worker.js")
-   .catch(error=>console.error("Service Worker Error:",error));
+  navigator.serviceWorker.register("./sw.js")
+   .then(registration=>{
+    console.log("PWA Registered:",registration.scope);
+   })
+   .catch(error=>{
+    console.error("Service Worker Error:",error);
+   });
  });
 }
 
@@ -1261,4 +1265,5 @@ init();
 </script>
 </body>
 </html>
+
 
